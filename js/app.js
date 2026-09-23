@@ -181,13 +181,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ==================== RENDER FUNCTIONS ====================
 
-    // Load catalog from localStorage or default
-    let catalogData = JSON.parse(localStorage.getItem('neverdie_catalog')) || initialCatalogData;
+    // Load catalog and merge new server tracks with local tracks
+    let localCatalog = [];
+    try {
+        localCatalog = JSON.parse(localStorage.getItem('neverdie_catalog')) || [];
+    } catch (e) {
+        localCatalog = [];
+    }
+
+    // Merge strategy: Keep user added tracks (starts with custom or latest) and ensure all initial tracks exist
+    const initialIds = new Set(initialCatalogData.map(t => t.id));
+    const customUserTracks = localCatalog.filter(t => !initialIds.has(t.id));
+    
+    // Always start with latest initial data + any user added tracks
+    let catalogData = [...customUserTracks, ...initialCatalogData];
     let currentFilter = 'all';
     let currentSearchQuery = '';
 
     function saveCatalogToLocalStorage() {
-        localStorage.setItem('neverdie_catalog', JSON.stringify(catalogData));
+        try {
+            localStorage.setItem('neverdie_catalog', JSON.stringify(catalogData));
+        } catch (e) {
+            console.error('LocalStorage save error:', e);
+        }
     }
 
     function renderCatalog() {
