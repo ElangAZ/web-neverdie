@@ -68,7 +68,7 @@
                 </div>
             </div>
             <div class="hero__content">
-                <div class="hero__badge reveal">EST. 2024</div>
+                <div class="hero__badge reveal">EST. 2023</div>
                 <h1 class="hero__title reveal">
                     <span class="hero__title-line">NEVER</span>
                     <span class="hero__title-line hero__title-line--accent">DIE</span>
@@ -188,10 +188,20 @@
                 <h2 class="section-title reveal">Catalog</h2>
                 <p class="section-subtitle reveal">Jelajahi koleksi lagu yang bisa di-remix atau dirilis di label NEVERDIE.</p>
 
-                <div class="catalog__filters reveal">
-                    <button class="filter-btn active" data-filter="all">All</button>
-                    <button class="filter-btn" data-filter="remix">Available for Remix</button>
-                    <button class="filter-btn" data-filter="released">Released</button>
+                <div class="catalog__controls reveal">
+                    <div class="catalog__search">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                        <input type="text" id="catalogSearchInput" placeholder="Cari judul lagu, artis, atau genre...">
+                    </div>
+                    <div class="catalog__filters">
+                        <button class="filter-btn active" data-filter="all">All</button>
+                        <button class="filter-btn" data-filter="remix">Available for Remix</button>
+                        <button class="filter-btn" data-filter="released">Released</button>
+                    </div>
+                    <button class="btn btn--outline btn--sm catalog__add-btn" id="openAddTrackModal">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                        Add Track (Admin)
+                    </button>
                 </div>
 
                 <div class="catalog__grid" id="catalogGrid">
@@ -199,6 +209,42 @@
                 </div>
             </div>
         </section>
+
+        <!-- Admin Modal Add Track -->
+        <div class="modal" id="addTrackModal" aria-hidden="true">
+            <div class="modal__overlay" id="modalOverlay"></div>
+            <div class="modal__content">
+                <div class="modal__header">
+                    <h3 class="modal__title">Tambah Lagu ke Catalog</h3>
+                    <button class="modal__close" id="closeTrackModal">&times;</button>
+                </div>
+                <form id="addTrackForm" class="modal__form">
+                    <div class="form-group">
+                        <label for="trackTitle">Judul Lagu</label>
+                        <input type="text" id="trackTitle" placeholder="Contoh: Midnight Eclipse" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="trackArtist">Artis / Producer</label>
+                        <input type="text" id="trackArtist" placeholder="Contoh: PHANTØM × KRVN" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="trackGenre">Genre (pisahkan dengan koma)</label>
+                        <input type="text" id="trackGenre" placeholder="Contoh: Dubstep, Bass" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="trackStatus">Status Lagu</label>
+                        <select id="trackStatus" required>
+                            <option value="remix">Available for Remix</option>
+                            <option value="released">Released</option>
+                        </select>
+                    </div>
+                    <div class="modal__actions">
+                        <button type="button" class="btn btn--outline" id="cancelTrackModal">Batal</button>
+                        <button type="submit" class="btn btn--primary">Simpan Lagu</button>
+                    </div>
+                </form>
+            </div>
+        </div>
 
         <!-- ==================== COMMUNITY ==================== -->
         <section id="community" class="community">

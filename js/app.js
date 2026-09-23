@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ==================== DATA ====================
 
-    const catalogData = [
+    const initialCatalogData = [
         {
             id: 'NVRD001',
             title: 'Midnight Eclipse',
@@ -176,16 +176,42 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ==================== RENDER FUNCTIONS ====================
 
-    function renderCatalog(filter = 'all') {
+    // Load catalog from localStorage or default
+    let catalogData = JSON.parse(localStorage.getItem('neverdie_catalog')) || initialCatalogData;
+    let currentFilter = 'all';
+    let currentSearchQuery = '';
+
+    function saveCatalogToLocalStorage() {
+        localStorage.setItem('neverdie_catalog', JSON.stringify(catalogData));
+    }
+
+    function renderCatalog() {
         const grid = document.getElementById('catalogGrid');
         if (!grid) return;
 
-        const filtered = filter === 'all'
-            ? catalogData
-            : catalogData.filter(t => t.status === filter);
+        const filtered = catalogData.filter(track => {
+            const matchesFilter = currentFilter === 'all' || track.status === currentFilter;
+            const query = currentSearchQuery.toLowerCase().trim();
+            const matchesSearch = !query || 
+                track.title.toLowerCase().includes(query) ||
+                track.artist.toLowerCase().includes(query) ||
+                track.genre.some(g => g.toLowerCase().includes(query));
+
+            return matchesFilter && matchesSearch;
+        });
+
+        if (filtered.length === 0) {
+            grid.innerHTML = `
+                <div style="grid-column: 1 / -1; text-align: center; padding: 48px; color: var(--text-muted);">
+                    <p style="font-size: 1.1rem; margin-bottom: 8px;">Lagu tidak ditemukan</p>
+                    <p style="font-size: 0.85rem;">Coba kata kunci pencarian lain atau ganti filter.</p>
+                </div>
+            `;
+            return;
+        }
 
         grid.innerHTML = filtered.map((track, i) => `
-            <div class="catalog-card" style="animation-delay: ${i * 0.08}s" data-status="${track.status}">
+            <div class="catalog-card" style="animation-delay: ${i * 0.05}s" data-status="${track.status}">
                 <div class="catalog-card__cover">
                     <div class="catalog-card__cover-bg" style="background: ${track.gradient}">
                         ${track.id}
@@ -335,16 +361,87 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // ==================== CATALOG FILTERS ====================
+    // ==================== SEARCH & CATALOG CONTROLS ====================
+
+    const searchInput = document.getElementById('catalogSearchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            currentSearchQuery = e.target.value;
+            renderCatalog();
+        });
+    }
 
     const filterBtns = document.querySelectorAll('.filter-btn');
     filterBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             filterBtns.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            renderCatalog(btn.dataset.filter);
+            currentFilter = btn.dataset.filter;
+            renderCatalog();
         });
     });
+
+    // ==================== ADMIN MODAL (ADD TRACK) ====================
+
+    const addTrackModal = document.getElementById('addTrackModal');
+    const openAddTrackModalBtn = document.getElementById('openAddTrackModal');
+    const closeTrackModalBtn = document.getElementById('closeTrackModal');
+    const cancelTrackModalBtn = document.getElementById('cancelTrackModal');
+    const modalOverlay = document.getElementById('modalOverlay');
+    const addTrackForm = document.getElementById('addTrackForm');
+
+    function openModal() {
+        if (addTrackModal) addTrackModal.classList.add('active');
+    }
+
+    function closeModal() {
+        if (addTrackModal) addTrackModal.classList.remove('active');
+        if (addTrackForm) addTrackForm.reset();
+    }
+
+    if (openAddTrackModalBtn) openAddTrackModalBtn.addEventListener('click', openModal);
+    if (closeTrackModalBtn) closeTrackModalBtn.addEventListener('click', closeModal);
+    if (cancelTrackModalBtn) cancelTrackModalBtn.addEventListener('click', closeModal);
+    if (modalOverlay) modalOverlay.addEventListener('click', closeModal);
+
+    if (addTrackForm) {
+        addTrackForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const title = document.getElementById('trackTitle').value.trim();
+            const artist = document.getElementById('trackArtist').value.trim();
+            const genreInput = document.getElementById('trackGenre').value.trim();
+            const status = document.getElementById('trackStatus').value;
+
+            const genres = genreInput.split(',').map(g => g.trim()).filter(g => g.length > 0);
+
+            // Generate ID & random aesthetic gradient
+            const nextIndex = catalogData.length + 1;
+            const trackId = `NVRD${nextIndex.toString().padStart(3, '0')}`;
+            const gradients = [
+                'linear-gradient(135deg, #1a1a1a, #333)',
+                'linear-gradient(135deg, #222, #0a0a0a, #2a2a2a)',
+                'linear-gradient(135deg, #151515, #2a2a2a)',
+                'linear-gradient(135deg, #1c1c1c, #0a0a0a)'
+            ];
+            const randomGradient = gradients[Math.floor(Math.random() * gradients.length)];
+
+            const newTrack = {
+                id: trackId,
+                title: title,
+                artist: artist,
+                genre: genres.length > 0 ? genres : ['Music'],
+                status: status,
+                gradient: randomGradient
+            };
+
+            // Add to start of list
+            catalogData.unshift(newTrack);
+            saveCatalogToLocalStorage();
+            renderCatalog();
+            closeModal();
+        });
+    }
 
     // ==================== ACCORDION ====================
 
