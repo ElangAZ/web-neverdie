@@ -9,6 +9,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const initialCatalogData = [
         {
+            id: 'NVRD009',
+            title: 'Pamer Bojo',
+            artist: 'mbuhh',
+            genre: ['Breakbeat', 'Remix'],
+            status: 'remix',
+            gradient: 'linear-gradient(135deg, #1c1c1c 0%, #2a2a2a 100%)',
+            youtubeUrl: 'https://www.youtube.com/results?search_query=pamer+bojo+remix'
+        },
+        {
             id: 'NVRD001',
             title: 'Midnight Eclipse',
             artist: 'PHANTØM × KRVN',
