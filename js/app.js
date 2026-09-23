@@ -7,75 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ==================== DATA ====================
 
-    const initialCatalogData = [
-        {
-            id: 'NVRD009',
-            title: 'Pamer Bojo',
-            artist: 'mbuhh',
-            genre: ['Breakbeat', 'Remix'],
-            status: 'remix',
-            gradient: 'linear-gradient(135deg, #1c1c1c 0%, #2a2a2a 100%)',
-            youtubeUrl: 'https://www.youtube.com/results?search_query=pamer+bojo+remix'
-        },
-        {
-            id: 'NVRD001',
-            title: 'Midnight Eclipse',
-            artist: 'PHANTØM × KRVN',
-            genre: ['Dubstep', 'Bass'],
-            status: 'released',
-            gradient: 'linear-gradient(135deg, #1a1a1a 0%, #333 50%, #111 100%)',
-            youtubeUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-            otherUrl: 'https://soundcloud.com'
-        },
-        {
-            id: 'NVRD002',
-            title: 'Shadow Protocol',
-            artist: 'ECLIPSE',
-            genre: ['Future Bass'],
-            status: 'remix',
-            gradient: 'linear-gradient(135deg, #222 0%, #0a0a0a 50%, #2a2a2a 100%)',
-            youtubeUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-            otherUrl: 'https://drive.google.com'
-        },
-        {
-            id: 'NVRD003',
-            title: 'Digital Phantom',
-            artist: 'VOID.SYS',
-            genre: ['Drum & Bass'],
-            status: 'remix',
-            gradient: 'linear-gradient(135deg, #0f0f0f 0%, #252525 50%, #0a0a0a 100%)',
-            youtubeUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-            otherUrl: 'https://drive.google.com'
-        },
-        {
-            id: 'NVRD004',
-            title: 'Eternal Signal',
-            artist: 'PHANTØM',
-            genre: ['Dubstep'],
-            status: 'released',
-            gradient: 'linear-gradient(135deg, #181818 0%, #2e2e2e 50%, #0e0e0e 100%)',
-            youtubeUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'
-        },
-        {
-            id: 'NVRD005',
-            title: 'Void Walker',
-            artist: 'KRVN',
-            genre: ['House', 'Techno'],
-            status: 'remix',
-            gradient: 'linear-gradient(135deg, #202020 0%, #0d0d0d 50%, #303030 100%)',
-            youtubeUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-            otherUrl: 'https://drive.google.com'
-        },
-        {
-            id: 'NVRD006',
-            title: 'Neon Decay',
-            artist: 'ECLIPSE × VOID.SYS',
-            genre: ['Future Bass', 'Trap'],
-            status: 'released',
-            gradient: 'linear-gradient(135deg, #151515 0%, #2a2a2a 50%, #111 100%)',
-            youtubeUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'
-        }
-    ];
+    const initialCatalogData = [];
 
     const profilesData = [
         {
@@ -177,46 +109,65 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     ];
 
-    // ==================== RENDER FUNCTIONS ====================
+    // ==================== CLOUD / STORAGE CONFIG ====================
+    // Temp/User JSONBlob ID (Bisa diisi ID JSONBlob dari jsonblob.com)
+    let JSONBLOB_ID = localStorage.getItem('neverdie_blob_id') || '';
 
-    // Load catalog safely
-    let localCatalog = [];
-    try {
-        localCatalog = JSON.parse(localStorage.getItem('neverdie_catalog')) || [];
-        if (!Array.isArray(localCatalog)) localCatalog = [];
-    } catch (e) {
-        localCatalog = [];
-    }
-
-    // Merge strategy: Keep initial tracks + any custom tracks added by user
-    const initialMap = new Map(initialCatalogData.map(t => [t.id, t]));
-    
-    // Clean user tracks (ensure valid format)
-    const validUserTracks = localCatalog.filter(t => t && t.id && !initialMap.has(t.id));
-    
-    // Combine user tracks on top of initial tracks
-    let catalogData = [...validUserTracks, ...initialCatalogData];
+    let catalogData = [];
     let currentFilter = 'all';
     let currentSearchQuery = '';
 
-    function saveCatalogToLocalStorage() {
+    // Load initial catalog safely
+    try {
+        catalogData = JSON.parse(localStorage.getItem('neverdie_catalog')) || [];
+        if (!Array.isArray(catalogData)) catalogData = [];
+    } catch (e) {
+        catalogData = [];
+    }
+
+    async function loadCatalogFromCloud() {
+        const blobId = localStorage.getItem('neverdie_blob_id') || JSONBLOB_ID;
+        if (!blobId) return;
         try {
-            // Save only clean metadata to prevent localStorage quota crash
-            const cleanData = catalogData.map(t => ({
-                id: t.id,
-                title: t.title,
-                artist: t.artist,
-                genre: t.genre,
-                status: t.status,
-                gradient: t.gradient,
-                downloadUrl: t.downloadUrl || '',
-                audioSrc: t.audioSrc && t.audioSrc.length < 500000 ? t.audioSrc : '' // Only save if small
-            }));
-            localStorage.setItem('neverdie_catalog', JSON.stringify(cleanData));
+            const res = await fetch(`https://jsonblob.com/api/jsonBlob/${blobId}`);
+            if (res.ok) {
+                const data = await res.json();
+                if (Array.isArray(data)) {
+                    catalogData = data;
+                    localStorage.setItem('neverdie_catalog', JSON.stringify(catalogData));
+                    renderCatalog();
+                }
+            }
+        } catch (e) {
+            console.warn('JSONBlob fetch warning:', e);
+        }
+    }
+
+    async function saveCatalogToLocalStorage() {
+        // Save locally
+        try {
+            localStorage.setItem('neverdie_catalog', JSON.stringify(catalogData));
         } catch (e) {
             console.warn('LocalStorage save warning:', e);
         }
+
+        // Save to JSONBlob Cloud if ID available
+        const blobId = localStorage.getItem('neverdie_blob_id') || JSONBLOB_ID;
+        if (blobId) {
+            try {
+                await fetch(`https://jsonblob.com/api/jsonBlob/${blobId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(catalogData)
+                });
+            } catch (e) {
+                console.warn('JSONBlob cloud save warning:', e);
+            }
+        }
     }
+
+    // Try loading cloud data asynchronously
+    loadCatalogFromCloud();
 
     function renderCatalog() {
         const grid = document.getElementById('catalogGrid');
@@ -234,10 +185,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         if (filtered.length === 0) {
+            const isCatalogEmpty = catalogData.length === 0;
             grid.innerHTML = `
                 <div style="grid-column: 1 / -1; text-align: center; padding: 48px; color: var(--text-muted);">
-                    <p style="font-size: 1.1rem; margin-bottom: 8px;">Lagu tidak ditemukan</p>
-                    <p style="font-size: 0.85rem;">Coba kata kunci pencarian lain atau ganti filter.</p>
+                    <p style="font-size: 1.1rem; margin-bottom: 8px;">${isCatalogEmpty ? 'Belum Ada Rilisan Lagu' : 'Lagu Tidak Ditemukan'}</p>
+                    <p style="font-size: 0.85rem;">${isCatalogEmpty ? 'Katalog lagu saat ini masih kosong. Silakan tambahkan lagu melalui tombol "+ Tambah Track" di bawah.' : 'Coba kata kunci pencarian lain atau ganti filter.'}</p>
                 </div>
             `;
             return;
