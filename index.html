@@ -215,7 +215,7 @@
             <div class="modal__overlay" id="modalOverlay" onclick="closeTrackModal()"></div>
             <div class="modal__content">
                 <div class="modal__header">
-                    <h3 class="modal__title">Tambah Lagu ke Catalog</h3>
+                    <h3 class="modal__title">Tambah Rilisan Lagu Baru</h3>
                     <button class="modal__close" id="closeTrackModal" onclick="closeTrackModal()">&times;</button>
                 </div>
                 <form id="addTrackForm" class="modal__form">
@@ -229,26 +229,26 @@
                     </div>
                     <div class="form-group">
                         <label for="trackGenre">Genre (pisahkan dengan koma)</label>
-                        <input type="text" id="trackGenre" placeholder="Contoh: Dubstep, Bass" required>
+                        <input type="text" id="trackGenre" placeholder="Contoh: Dubstep, Bass, House" required>
                     </div>
                     <div class="form-group">
-                        <label for="trackStatus">Status Lagu</label>
+                        <label for="trackStatus">Kategori Rilisan</label>
                         <select id="trackStatus" required>
-                            <option value="remix">Available for Remix</option>
-                            <option value="released">Released</option>
+                            <option value="released">Official Release</option>
+                            <option value="remix">Available for Remix / Stems</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="trackAudioFile">Upload File Audio (.mp3, .wav) - Opsional</label>
-                        <input type="file" id="trackAudioFile" accept="audio/*">
+                        <label for="trackYtUrl">Link YouTube / YouTube Music</label>
+                        <input type="url" id="trackYtUrl" placeholder="https://www.youtube.com/watch?v=..." required>
                     </div>
                     <div class="form-group">
-                        <label for="trackAudioUrl">Atau Link Audio / Stems (Drive/SoundCloud/Dropbox)</label>
-                        <input type="url" id="trackAudioUrl" placeholder="https://drive.google.com/file/d/...">
+                        <label for="trackOtherUrl">Link Stems / Spotify / SoundCloud (Opsional)</label>
+                        <input type="url" id="trackOtherUrl" placeholder="https://drive.google.com atau Spotify link">
                     </div>
                     <div class="modal__actions">
                         <button type="button" class="btn btn--outline" id="cancelTrackModal" onclick="closeTrackModal()">Batal</button>
-                        <button type="submit" class="btn btn--primary">Simpan Lagu</button>
+                        <button type="submit" class="btn btn--primary">Tambah Rilisan</button>
                     </div>
                 </form>
             </div>

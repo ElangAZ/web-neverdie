@@ -254,10 +254,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     <span class="catalog-card__status catalog-card__status--${track.status}">
                         ${track.status === 'remix' ? 'Available for Remix' : 'Released'}
                     </span>
-                    ${track.audioSrc ? `
-                        <button class="catalog-card__play-btn" data-audio="${track.audioSrc}" data-title="${track.title}" data-artist="${track.artist}" aria-label="Play ${track.title}">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-                        </button>
+                    ${track.youtubeUrl ? `
+                        <a href="${track.youtubeUrl}" target="_blank" rel="noopener noreferrer" class="catalog-card__play-btn" title="Watch on YouTube" aria-label="Play ${track.title}">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                        </a>
                     ` : ''}
                 </div>
                 <div class="catalog-card__info">
@@ -266,57 +266,23 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="catalog-card__tags">
                         ${track.genre.map(g => `<span class="catalog-card__tag">${g}</span>`).join('')}
                     </div>
-                    ${track.downloadUrl ? `
-                        <a href="${track.downloadUrl}" target="_blank" rel="noopener noreferrer" class="catalog-card__download-link">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-                            ${track.status === 'remix' ? 'Download Stems / Track' : 'Listen / Download'}
-                        </a>
-                    ` : ''}
+                    <div class="catalog-card__links" style="display:flex; gap:12px; margin-top:12px;">
+                        ${track.youtubeUrl ? `
+                            <a href="${track.youtubeUrl}" target="_blank" rel="noopener noreferrer" class="catalog-card__download-link" style="color:#ff4444;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                                YouTube
+                            </a>
+                        ` : ''}
+                        ${track.otherUrl ? `
+                            <a href="${track.otherUrl}" target="_blank" rel="noopener noreferrer" class="catalog-card__download-link">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                                ${track.status === 'remix' ? 'Stems Pack' : 'More Links'}
+                            </a>
+                        ` : ''}
+                    </div>
                 </div>
             </div>
         `).join('');
-
-        // Add play audio event listeners for catalog play buttons
-        document.querySelectorAll('.catalog-card__play-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const audioSrc = btn.dataset.audio;
-                const title = btn.dataset.title;
-                const artist = btn.dataset.artist;
-
-                // Load to track spotlight player UI
-                const playerTitle = document.querySelector('.player__track-title');
-                const playerArtist = document.querySelector('.player__artist');
-                if (playerTitle) playerTitle.textContent = title;
-                if (playerArtist) playerArtist.textContent = artist;
-
-                // Control global audio playback
-                let globalAudio = document.getElementById('globalAudioElement');
-                if (!globalAudio) {
-                    globalAudio = new Audio();
-                    globalAudio.id = 'globalAudioElement';
-                    document.body.appendChild(globalAudio);
-                }
-
-                if (audioSrc) {
-                    globalAudio.src = audioSrc;
-                    globalAudio.play().then(() => {
-                        const playBtn = document.getElementById('playBtn');
-                        if (playBtn) {
-                            const playIcon = playBtn.querySelector('.play-icon');
-                            const pauseIcon = playBtn.querySelector('.pause-icon');
-                            if (playIcon) playIcon.style.display = 'none';
-                            if (pauseIcon) pauseIcon.style.display = 'block';
-                        }
-                        const vinyl = document.getElementById('playerVinyl');
-                        if (vinyl) vinyl.classList.add('spinning');
-                    }).catch(err => console.log('Audio playback error:', err));
-                }
-
-                // Scroll smoothly to player
-                const player = document.getElementById('spotlight');
-                if (player) player.scrollIntoView({ behavior: 'smooth' });
-            });
-        });
     }
 
     function renderProfiles() {
@@ -497,11 +463,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const artist = document.getElementById('trackArtist').value.trim();
             const genreInput = document.getElementById('trackGenre').value.trim();
             const status = document.getElementById('trackStatus').value;
-            const audioUrlInput = document.getElementById('trackAudioUrl');
-            const audioFileInput = document.getElementById('trackAudioFile');
+            const ytUrl = document.getElementById('trackYtUrl').value.trim();
+            const otherUrl = document.getElementById('trackOtherUrl').value.trim();
 
             const genres = genreInput.split(',').map(g => g.trim()).filter(g => g.length > 0);
-            const downloadUrl = audioUrlInput ? audioUrlInput.value.trim() : '';
 
             const nextIndex = catalogData.length + 1;
             const trackId = `NVRD${nextIndex.toString().padStart(3, '0')}`;
@@ -520,21 +485,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 genre: genres.length > 0 ? genres : ['Music'],
                 status: status,
                 gradient: randomGradient,
-                audioSrc: downloadUrl,
-                downloadUrl: downloadUrl
+                youtubeUrl: ytUrl,
+                otherUrl: otherUrl
             };
-
-            // Handle file preview if uploaded (use object URL instead of base64 to avoid storage crash)
-            if (audioFileInput && audioFileInput.files && audioFileInput.files[0]) {
-                const file = audioFileInput.files[0];
-                newTrack.audioSrc = URL.createObjectURL(file);
-            }
 
             catalogData.unshift(newTrack);
             saveCatalogToLocalStorage();
             renderCatalog();
             window.closeTrackModal();
-            alert(`Lagu "${title}" berhasil ditambahkan ke Catalog!`);
+            alert(`Rilisan "${title}" berhasil ditambahkan!`);
         });
     }
 
