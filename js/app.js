@@ -248,21 +248,34 @@ document.addEventListener('DOMContentLoaded', () => {
                 const title = btn.dataset.title;
                 const artist = btn.dataset.artist;
 
-                // Load to track spotlight player
+                // Load to track spotlight player UI
                 const playerTitle = document.querySelector('.player__track-title');
                 const playerArtist = document.querySelector('.player__artist');
                 if (playerTitle) playerTitle.textContent = title;
                 if (playerArtist) playerArtist.textContent = artist;
 
-                // If audio element exists, play it
+                // Control global audio playback
                 let globalAudio = document.getElementById('globalAudioElement');
                 if (!globalAudio) {
-                    globalAudio = document.createElement('audio');
+                    globalAudio = new Audio();
                     globalAudio.id = 'globalAudioElement';
                     document.body.appendChild(globalAudio);
                 }
-                globalAudio.src = audioSrc;
-                globalAudio.play();
+
+                if (audioSrc) {
+                    globalAudio.src = audioSrc;
+                    globalAudio.play().then(() => {
+                        const playBtn = document.getElementById('playBtn');
+                        if (playBtn) {
+                            const playIcon = playBtn.querySelector('.play-icon');
+                            const pauseIcon = playBtn.querySelector('.pause-icon');
+                            if (playIcon) playIcon.style.display = 'none';
+                            if (pauseIcon) pauseIcon.style.display = 'block';
+                        }
+                        const vinyl = document.getElementById('playerVinyl');
+                        if (vinyl) vinyl.classList.add('spinning');
+                    }).catch(err => console.log('Audio playback error:', err));
+                }
 
                 // Scroll smoothly to player
                 const player = document.getElementById('spotlight');
@@ -480,10 +493,21 @@ document.addEventListener('DOMContentLoaded', () => {
                     downloadUrl: downloadUrl || audioSrc
                 };
 
-                catalogData.unshift(newTrack);
-                saveCatalogToLocalStorage();
-                renderCatalog();
-                closeModal();
+                try {
+                    catalogData.unshift(newTrack);
+                    saveCatalogToLocalStorage();
+                    renderCatalog();
+                    closeModal();
+                    alert(`Lagu "${title}" berhasil ditambahkan ke Catalog!`);
+                } catch (e) {
+                    console.error('LocalStorage quota error:', e);
+                    // Jika file audio terlalu besar untuk localStorage
+                    newTrack.audioSrc = ''; // Kosongkan data base64 jika terlalu besar
+                    saveCatalogToLocalStorage();
+                    renderCatalog();
+                    closeModal();
+                    alert(`Lagu "${title}" berhasil ditambahkan! (Catatan: File audio sangat besar, disarankan menggunakan Link Audio/Drive)`);
+                }
             };
 
             // Process uploaded file if available
