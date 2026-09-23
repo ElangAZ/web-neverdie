@@ -14,7 +14,8 @@ document.addEventListener('DOMContentLoaded', () => {
             artist: 'PHANTØM × KRVN',
             genre: ['Dubstep', 'Bass'],
             status: 'released',
-            gradient: 'linear-gradient(135deg, #1a1a1a 0%, #333 50%, #111 100%)'
+            gradient: 'linear-gradient(135deg, #1a1a1a 0%, #333 50%, #111 100%)',
+            downloadUrl: 'https://soundcloud.com'
         },
         {
             id: 'NVRD002',
@@ -22,7 +23,8 @@ document.addEventListener('DOMContentLoaded', () => {
             artist: 'ECLIPSE',
             genre: ['Future Bass'],
             status: 'remix',
-            gradient: 'linear-gradient(135deg, #222 0%, #0a0a0a 50%, #2a2a2a 100%)'
+            gradient: 'linear-gradient(135deg, #222 0%, #0a0a0a 50%, #2a2a2a 100%)',
+            downloadUrl: 'https://drive.google.com'
         },
         {
             id: 'NVRD003',
@@ -30,7 +32,8 @@ document.addEventListener('DOMContentLoaded', () => {
             artist: 'VOID.SYS',
             genre: ['Drum & Bass'],
             status: 'remix',
-            gradient: 'linear-gradient(135deg, #0f0f0f 0%, #252525 50%, #0a0a0a 100%)'
+            gradient: 'linear-gradient(135deg, #0f0f0f 0%, #252525 50%, #0a0a0a 100%)',
+            downloadUrl: 'https://drive.google.com'
         },
         {
             id: 'NVRD004',
@@ -46,7 +49,8 @@ document.addEventListener('DOMContentLoaded', () => {
             artist: 'KRVN',
             genre: ['House', 'Techno'],
             status: 'remix',
-            gradient: 'linear-gradient(135deg, #202020 0%, #0d0d0d 50%, #303030 100%)'
+            gradient: 'linear-gradient(135deg, #202020 0%, #0d0d0d 50%, #303030 100%)',
+            downloadUrl: 'https://drive.google.com'
         },
         {
             id: 'NVRD006',
@@ -62,7 +66,8 @@ document.addEventListener('DOMContentLoaded', () => {
             artist: 'PHANTØM',
             genre: ['Bass', 'Hybrid'],
             status: 'remix',
-            gradient: 'linear-gradient(135deg, #1c1c1c 0%, #0a0a0a 50%, #222 100%)'
+            gradient: 'linear-gradient(135deg, #1c1c1c 0%, #0a0a0a 50%, #222 100%)',
+            downloadUrl: 'https://drive.google.com'
         },
         {
             id: 'NVRD008',
