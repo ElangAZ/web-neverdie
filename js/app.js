@@ -181,28 +181,42 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ==================== RENDER FUNCTIONS ====================
 
-    // Load catalog and merge new server tracks with local tracks
+    // Load catalog safely
     let localCatalog = [];
     try {
         localCatalog = JSON.parse(localStorage.getItem('neverdie_catalog')) || [];
+        if (!Array.isArray(localCatalog)) localCatalog = [];
     } catch (e) {
         localCatalog = [];
     }
 
-    // Merge strategy: Keep user added tracks (starts with custom or latest) and ensure all initial tracks exist
-    const initialIds = new Set(initialCatalogData.map(t => t.id));
-    const customUserTracks = localCatalog.filter(t => !initialIds.has(t.id));
+    // Merge strategy: Keep initial tracks + any custom tracks added by user
+    const initialMap = new Map(initialCatalogData.map(t => [t.id, t]));
     
-    // Always start with latest initial data + any user added tracks
-    let catalogData = [...customUserTracks, ...initialCatalogData];
+    // Clean user tracks (ensure valid format)
+    const validUserTracks = localCatalog.filter(t => t && t.id && !initialMap.has(t.id));
+    
+    // Combine user tracks on top of initial tracks
+    let catalogData = [...validUserTracks, ...initialCatalogData];
     let currentFilter = 'all';
     let currentSearchQuery = '';
 
     function saveCatalogToLocalStorage() {
         try {
-            localStorage.setItem('neverdie_catalog', JSON.stringify(catalogData));
+            // Save only clean metadata to prevent localStorage quota crash
+            const cleanData = catalogData.map(t => ({
+                id: t.id,
+                title: t.title,
+                artist: t.artist,
+                genre: t.genre,
+                status: t.status,
+                gradient: t.gradient,
+                downloadUrl: t.downloadUrl || '',
+                audioSrc: t.audioSrc && t.audioSrc.length < 500000 ? t.audioSrc : '' // Only save if small
+            }));
+            localStorage.setItem('neverdie_catalog', JSON.stringify(cleanData));
         } catch (e) {
-            console.error('LocalStorage save error:', e);
+            console.warn('LocalStorage save warning:', e);
         }
     }
 
@@ -483,62 +497,44 @@ document.addEventListener('DOMContentLoaded', () => {
             const artist = document.getElementById('trackArtist').value.trim();
             const genreInput = document.getElementById('trackGenre').value.trim();
             const status = document.getElementById('trackStatus').value;
-            const audioFileInput = document.getElementById('trackAudioFile');
             const audioUrlInput = document.getElementById('trackAudioUrl');
+            const audioFileInput = document.getElementById('trackAudioFile');
 
             const genres = genreInput.split(',').map(g => g.trim()).filter(g => g.length > 0);
             const downloadUrl = audioUrlInput ? audioUrlInput.value.trim() : '';
 
-            const saveTrack = (audioSrc = '') => {
-                const nextIndex = catalogData.length + 1;
-                const trackId = `NVRD${nextIndex.toString().padStart(3, '0')}`;
-                const gradients = [
-                    'linear-gradient(135deg, #1a1a1a, #333)',
-                    'linear-gradient(135deg, #222, #0a0a0a, #2a2a2a)',
-                    'linear-gradient(135deg, #151515, #2a2a2a)',
-                    'linear-gradient(135deg, #1c1c1c, #0a0a0a)'
-                ];
-                const randomGradient = gradients[Math.floor(Math.random() * gradients.length)];
+            const nextIndex = catalogData.length + 1;
+            const trackId = `NVRD${nextIndex.toString().padStart(3, '0')}`;
+            const gradients = [
+                'linear-gradient(135deg, #1a1a1a, #333)',
+                'linear-gradient(135deg, #222, #0a0a0a, #2a2a2a)',
+                'linear-gradient(135deg, #151515, #2a2a2a)',
+                'linear-gradient(135deg, #1c1c1c, #0a0a0a)'
+            ];
+            const randomGradient = gradients[Math.floor(Math.random() * gradients.length)];
 
-                const newTrack = {
-                    id: trackId,
-                    title: title,
-                    artist: artist,
-                    genre: genres.length > 0 ? genres : ['Music'],
-                    status: status,
-                    gradient: randomGradient,
-                    audioSrc: audioSrc,
-                    downloadUrl: downloadUrl || audioSrc
-                };
-
-                try {
-                    catalogData.unshift(newTrack);
-                    saveCatalogToLocalStorage();
-                    renderCatalog();
-                    window.closeTrackModal();
-                    alert(`Lagu "${title}" berhasil ditambahkan ke Catalog!`);
-                } catch (e) {
-                    console.error('LocalStorage quota error:', e);
-                    // Jika file audio terlalu besar untuk localStorage
-                    newTrack.audioSrc = ''; // Kosongkan data base64 jika terlalu besar
-                    saveCatalogToLocalStorage();
-                    renderCatalog();
-                    window.closeTrackModal();
-                    alert(`Lagu "${title}" berhasil ditambahkan! (Catatan: File audio sangat besar, disarankan menggunakan Link Audio/Drive)`);
-                }
+            const newTrack = {
+                id: trackId,
+                title: title,
+                artist: artist,
+                genre: genres.length > 0 ? genres : ['Music'],
+                status: status,
+                gradient: randomGradient,
+                audioSrc: downloadUrl,
+                downloadUrl: downloadUrl
             };
 
-            // Process uploaded file if available
+            // Handle file preview if uploaded (use object URL instead of base64 to avoid storage crash)
             if (audioFileInput && audioFileInput.files && audioFileInput.files[0]) {
                 const file = audioFileInput.files[0];
-                const reader = new FileReader();
-                reader.onload = function (event) {
-                    saveTrack(event.target.result);
-                };
-                reader.readAsDataURL(file);
-            } else {
-                saveTrack(downloadUrl);
+                newTrack.audioSrc = URL.createObjectURL(file);
             }
+
+            catalogData.unshift(newTrack);
+            saveCatalogToLocalStorage();
+            renderCatalog();
+            window.closeTrackModal();
+            alert(`Lagu "${title}" berhasil ditambahkan ke Catalog!`);
         });
     }
 
