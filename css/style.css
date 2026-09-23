@@ -939,8 +939,8 @@ button {
 .modal {
     position: fixed;
     inset: 0;
-    z-index: 2000;
-    display: flex;
+    z-index: 99999;
+    display: none;
     align-items: center;
     justify-content: center;
     opacity: 0;
@@ -949,6 +949,7 @@ button {
 }
 
 .modal.active {
+    display: flex !important;
     opacity: 1;
     visibility: visible;
 }

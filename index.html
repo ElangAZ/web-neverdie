@@ -198,7 +198,7 @@
                         <button class="filter-btn" data-filter="remix">Available for Remix</button>
                         <button class="filter-btn" data-filter="released">Released</button>
                     </div>
-                    <button class="btn btn--outline btn--sm catalog__add-btn" id="openAddTrackModal">
+                    <button class="btn btn--outline btn--sm catalog__add-btn" id="openAddTrackModal" onclick="openTrackModal()">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
                         Add Track (Admin)
                     </button>
@@ -212,11 +212,11 @@
 
         <!-- Admin Modal Add Track -->
         <div class="modal" id="addTrackModal" aria-hidden="true">
-            <div class="modal__overlay" id="modalOverlay"></div>
+            <div class="modal__overlay" id="modalOverlay" onclick="closeTrackModal()"></div>
             <div class="modal__content">
                 <div class="modal__header">
                     <h3 class="modal__title">Tambah Lagu ke Catalog</h3>
-                    <button class="modal__close" id="closeTrackModal">&times;</button>
+                    <button class="modal__close" id="closeTrackModal" onclick="closeTrackModal()">&times;</button>
                 </div>
                 <form id="addTrackForm" class="modal__form">
                     <div class="form-group">
@@ -247,7 +247,7 @@
                         <input type="url" id="trackAudioUrl" placeholder="https://drive.google.com/file/d/...">
                     </div>
                     <div class="modal__actions">
-                        <button type="button" class="btn btn--outline" id="cancelTrackModal">Batal</button>
+                        <button type="button" class="btn btn--outline" id="cancelTrackModal" onclick="closeTrackModal()">Batal</button>
                         <button type="submit" class="btn btn--primary">Simpan Lagu</button>
                     </div>
                 </form>

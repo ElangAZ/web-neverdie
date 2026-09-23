@@ -436,26 +436,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ==================== ADMIN MODAL (ADD TRACK) ====================
 
-    const addTrackModal = document.getElementById('addTrackModal');
-    const openAddTrackModalBtn = document.getElementById('openAddTrackModal');
-    const closeTrackModalBtn = document.getElementById('closeTrackModal');
-    const cancelTrackModalBtn = document.getElementById('cancelTrackModal');
-    const modalOverlay = document.getElementById('modalOverlay');
-    const addTrackForm = document.getElementById('addTrackForm');
+    window.openTrackModal = function() {
+        const addTrackModal = document.getElementById('addTrackModal');
+        if (addTrackModal) {
+            addTrackModal.classList.add('active');
+            addTrackModal.style.display = 'flex';
+        }
+    };
 
-    function openModal() {
-        if (addTrackModal) addTrackModal.classList.add('active');
-    }
-
-    function closeModal() {
-        if (addTrackModal) addTrackModal.classList.remove('active');
+    window.closeTrackModal = function() {
+        const addTrackModal = document.getElementById('addTrackModal');
+        const addTrackForm = document.getElementById('addTrackForm');
+        if (addTrackModal) {
+            addTrackModal.classList.remove('active');
+            addTrackModal.style.display = 'none';
+        }
         if (addTrackForm) addTrackForm.reset();
-    }
-
-    if (openAddTrackModalBtn) openAddTrackModalBtn.addEventListener('click', openModal);
-    if (closeTrackModalBtn) closeTrackModalBtn.addEventListener('click', closeModal);
-    if (cancelTrackModalBtn) cancelTrackModalBtn.addEventListener('click', closeModal);
-    if (modalOverlay) modalOverlay.addEventListener('click', closeModal);
+    };
 
     if (addTrackForm) {
         addTrackForm.addEventListener('submit', (e) => {
@@ -497,7 +494,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     catalogData.unshift(newTrack);
                     saveCatalogToLocalStorage();
                     renderCatalog();
-                    closeModal();
+                    window.closeTrackModal();
                     alert(`Lagu "${title}" berhasil ditambahkan ke Catalog!`);
                 } catch (e) {
                     console.error('LocalStorage quota error:', e);
@@ -505,7 +502,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     newTrack.audioSrc = ''; // Kosongkan data base64 jika terlalu besar
                     saveCatalogToLocalStorage();
                     renderCatalog();
-                    closeModal();
+                    window.closeTrackModal();
                     alert(`Lagu "${title}" berhasil ditambahkan! (Catatan: File audio sangat besar, disarankan menggunakan Link Audio/Drive)`);
                 }
             };
