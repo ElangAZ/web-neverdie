@@ -219,6 +219,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     <span class="catalog-card__status catalog-card__status--${track.status}">
                         ${track.status === 'remix' ? 'Available for Remix' : 'Released'}
                     </span>
+                    ${track.audioSrc ? `
+                        <button class="catalog-card__play-btn" data-audio="${track.audioSrc}" data-title="${track.title}" data-artist="${track.artist}" aria-label="Play ${track.title}">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                        </button>
+                    ` : ''}
                 </div>
                 <div class="catalog-card__info">
                     <h3 class="catalog-card__title">${track.title}</h3>
@@ -226,9 +231,44 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="catalog-card__tags">
                         ${track.genre.map(g => `<span class="catalog-card__tag">${g}</span>`).join('')}
                     </div>
+                    ${track.downloadUrl ? `
+                        <a href="${track.downloadUrl}" target="_blank" rel="noopener noreferrer" class="catalog-card__download-link">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                            ${track.status === 'remix' ? 'Download Stems / Track' : 'Listen / Download'}
+                        </a>
+                    ` : ''}
                 </div>
             </div>
         `).join('');
+
+        // Add play audio event listeners for catalog play buttons
+        document.querySelectorAll('.catalog-card__play-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const audioSrc = btn.dataset.audio;
+                const title = btn.dataset.title;
+                const artist = btn.dataset.artist;
+
+                // Load to track spotlight player
+                const playerTitle = document.querySelector('.player__track-title');
+                const playerArtist = document.querySelector('.player__artist');
+                if (playerTitle) playerTitle.textContent = title;
+                if (playerArtist) playerArtist.textContent = artist;
+
+                // If audio element exists, play it
+                let globalAudio = document.getElementById('globalAudioElement');
+                if (!globalAudio) {
+                    globalAudio = document.createElement('audio');
+                    globalAudio.id = 'globalAudioElement';
+                    document.body.appendChild(globalAudio);
+                }
+                globalAudio.src = audioSrc;
+                globalAudio.play();
+
+                // Scroll smoothly to player
+                const player = document.getElementById('spotlight');
+                if (player) player.scrollIntoView({ behavior: 'smooth' });
+            });
+        });
     }
 
     function renderProfiles() {
@@ -412,34 +452,51 @@ document.addEventListener('DOMContentLoaded', () => {
             const artist = document.getElementById('trackArtist').value.trim();
             const genreInput = document.getElementById('trackGenre').value.trim();
             const status = document.getElementById('trackStatus').value;
+            const audioFileInput = document.getElementById('trackAudioFile');
+            const audioUrlInput = document.getElementById('trackAudioUrl');
 
             const genres = genreInput.split(',').map(g => g.trim()).filter(g => g.length > 0);
+            const downloadUrl = audioUrlInput ? audioUrlInput.value.trim() : '';
 
-            // Generate ID & random aesthetic gradient
-            const nextIndex = catalogData.length + 1;
-            const trackId = `NVRD${nextIndex.toString().padStart(3, '0')}`;
-            const gradients = [
-                'linear-gradient(135deg, #1a1a1a, #333)',
-                'linear-gradient(135deg, #222, #0a0a0a, #2a2a2a)',
-                'linear-gradient(135deg, #151515, #2a2a2a)',
-                'linear-gradient(135deg, #1c1c1c, #0a0a0a)'
-            ];
-            const randomGradient = gradients[Math.floor(Math.random() * gradients.length)];
+            const saveTrack = (audioSrc = '') => {
+                const nextIndex = catalogData.length + 1;
+                const trackId = `NVRD${nextIndex.toString().padStart(3, '0')}`;
+                const gradients = [
+                    'linear-gradient(135deg, #1a1a1a, #333)',
+                    'linear-gradient(135deg, #222, #0a0a0a, #2a2a2a)',
+                    'linear-gradient(135deg, #151515, #2a2a2a)',
+                    'linear-gradient(135deg, #1c1c1c, #0a0a0a)'
+                ];
+                const randomGradient = gradients[Math.floor(Math.random() * gradients.length)];
 
-            const newTrack = {
-                id: trackId,
-                title: title,
-                artist: artist,
-                genre: genres.length > 0 ? genres : ['Music'],
-                status: status,
-                gradient: randomGradient
+                const newTrack = {
+                    id: trackId,
+                    title: title,
+                    artist: artist,
+                    genre: genres.length > 0 ? genres : ['Music'],
+                    status: status,
+                    gradient: randomGradient,
+                    audioSrc: audioSrc,
+                    downloadUrl: downloadUrl || audioSrc
+                };
+
+                catalogData.unshift(newTrack);
+                saveCatalogToLocalStorage();
+                renderCatalog();
+                closeModal();
             };
 
-            // Add to start of list
-            catalogData.unshift(newTrack);
-            saveCatalogToLocalStorage();
-            renderCatalog();
-            closeModal();
+            // Process uploaded file if available
+            if (audioFileInput && audioFileInput.files && audioFileInput.files[0]) {
+                const file = audioFileInput.files[0];
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    saveTrack(event.target.result);
+                };
+                reader.readAsDataURL(file);
+            } else {
+                saveTrack(downloadUrl);
+            }
         });
     }
 
